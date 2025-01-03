@@ -1,0 +1,7 @@
+env: "local"
+
+bd:
+  bdPath: "myDB/db"
+
+server:
+    adr: "localhost:8080"
