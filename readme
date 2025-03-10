@@ -1,0 +1,24 @@
+cmd / server-starter .env connect файл до базы данных (просто введи пароль драйвер к
+ примеру 1234 postgres
+)
+после подключения к базе данных нужно внутри нее создать  таблицу в моем случае mybd с колонкой env
+в которую будет сохраняться сама env 
+в результате по переходу по ссылке  localhost:8080/env/prod или /env/debug переменная env 
+будет меняться тем самым меня регистр ошибок (logger) с debug на info или наоборо
+
+
+запуск из докера  
+запустить 
+PS C:\gol> docker-compose up --build -d  (или docker )
+
+PS C:\gol> docker-compose up --build -d 
+PS C:\gol> docker exec -it (НАЗВАНИЕ СЮДА к примеру 35517d79b29c) psql -U postgres -d postgres
+                                     |
+                                    \|/
+                                    ЧТОбы узнать название команда
+                                    docker ps
+
+PS C:\gol> docker exec (тут твое название) wget -qO- http://localhost:8080/env/debug
+app local сюда сохраняются логи
+
+

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Switcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #4e794b;
+        }
+        .container {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #dab3f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Select Environment</h1>
+        <button onclick="setEnvironment('debug')">DEBUG</button>
+        <button onclick="setEnvironment('prod')">PROD</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        function setEnvironment(env) {
+            fetch(`/env/${env}`)
+                .then(response => response.text())
+                .then(message => {
+                    document.getElementById("message").innerText = message;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                });
+        }
+    </script>
+</body>
+</html>
