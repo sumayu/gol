@@ -7,20 +7,24 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            height: 100vh;
             background-color: #1e1e1e;
             color: #f5f5f5;
+            overflow: hidden;
         }
-        .container {
+        .widget {
+            position: absolute;
             text-align: center;
             background-color: #2d2d2d;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            cursor: grab;
+            user-select: none;
+        }
+        .widget:active {
+            cursor: grabbing;
         }
         h1 {
             margin-bottom: 20px;
@@ -60,7 +64,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="widget" id="widget">
         <h1>Select Environment</h1>
         <button id="debugBtn" onclick="setEnvironment('debug')">DEBUG</button>
         <button id="prodBtn" onclick="setEnvironment('prod')">PROD</button>
@@ -78,9 +82,6 @@
                 .then(env => {
                     currentEnv = env;
                     updateUI();
-                })
-                .catch(error => {
-                    console.error("Error fetching current environment:", error);
                 });
         }
 
@@ -107,14 +108,49 @@
                 .then(() => {
                     currentEnv = env;
                     updateUI();
-                })
-                .catch(error => {
-                    console.error("Error setting environment:", error);
                 });
         }
 
+        const widget = document.getElementById("widget");
+        let isDragging = false;
+        let offsetX, offsetY;
+
+        function savePosition(x, y) {
+            localStorage.setItem("widgetPosition", JSON.stringify({ x, y }));
+        }
+
+        function loadPosition() {
+            const position = localStorage.getItem("widgetPosition");
+            if (position) {
+                const { x, y } = JSON.parse(position);
+                widget.style.left = `${x}px`;
+                widget.style.top = `${y}px`;
+            }
+        }
+
+        widget.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            offsetX = e.clientX - widget.offsetLeft;
+            offsetY = e.clientY - widget.offsetTop;
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (isDragging) {
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                widget.style.left = `${x}px`;
+                widget.style.top = `${y}px`;
+                savePosition(x, y);
+            }
+        });
+
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
             fetchCurrentEnvironment();
+            loadPosition();
         });
     </script>
 </body>
