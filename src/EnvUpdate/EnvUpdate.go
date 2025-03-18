@@ -1,41 +1,46 @@
 package envupdate
 
 import (
-	"database/sql"
-	"main/src/envchecker"
 	"main/src/logger"
 	mydb "main/src/mydb"
+)
 
-) 
-func EnvUpdateProd() {
-		
-	db, _ := mydb.Database()
-	_, err := db.Exec (`
-TRUNCATE TABLE envchecker;
-INSERT INTO envchecker (env) VALUES ('prod');
-
-	`)
-	
+func EnvUpdateProd() error {
+	db, err := mydb.Database()
 	if err != nil {
-		logger.Logger.Info("error message to db",err)
+		logger.Logger.Info("error connecting to db:", err)
+		return err
 	}
-	logger.Logger.Info("env = " , envchecker.Envchecker())
 
+	_, err = db.Exec(`
+		TRUNCATE TABLE envchecker;
+		INSERT INTO envchecker (env) VALUES ('prod');
+	`)
+	if err != nil {
+		logger.Logger.Info("error updating env to prod:", err)
+		return err
 	}
-	func EnvUpdateDebug() {
-		db ,_:= mydb.Database()
-		_, err := db.Exec (`
-TRUNCATE TABLE envchecker;
-INSERT INTO envchecker (env) VALUES ('debug');
 
-		`)
-		if err != nil {
-			logger.Logger.Info("error message to db",err)
+	logger.Logger.Info("env = prod")
+	return nil
+}
 
-		}
-		logger.Logger.Info("env = " , envchecker.Envchecker())
+func EnvUpdateDebug() error {
+	db, err := mydb.Database()
+	if err != nil {
+		logger.Logger.Info("error connecting to db:", err)
+		return err
 	}
-		func Rt () (*sql.DB,error) {
-			db , error := mydb.Database()
-			return db, error
-		}
+
+	_, err = db.Exec(`
+		TRUNCATE TABLE envchecker;
+		INSERT INTO envchecker (env) VALUES ('debug');
+	`)
+	if err != nil {
+		logger.Logger.Info("error updating env to debug:", err)
+		return err
+	}
+
+	logger.Logger.Info("env = debug")
+	return nil
+}
