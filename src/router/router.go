@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	envupdate "main/src/EnvUpdate"
+	"main/src/logger"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -13,7 +14,9 @@ func Router() *chi.Mux {
 
 	// Маршрут для главной страницы
 	server.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "connect to api TRUE - /static/ <-----")
+		logger.Logger.Debug("connect to api TRUE ")
+		http.Redirect(w,r, "/static/index.html", http.StatusMovedPermanently)
+
 
 	})
 
