@@ -5,153 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Environment Switcher</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            height: 100vh;
-            background-color: #1e1e1e;
-            color: #f5f5f5;
-            overflow: hidden;
-        }
-        .widget {
-            position: absolute;
-            text-align: center;
-            background-color: #2d2d2d;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-            cursor: grab;
-            user-select: none;
-        }
-        .widget:active {
-            cursor: grabbing;
-        }
-        h1 {
-            margin-bottom: 20px;
-            color: #f5f5f5;
-        }
-        button {
-            padding: 15px 30px;
-            margin: 10px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #333;
-            color: #f5f5f5;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        button:active {
-            background-color: #444;
-        }
-        button.active {
-            background-color: #444;
-        }
-        .env-info {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #3a3a3a;
-            border-radius: 5px;
-            font-size: 16px;
-            color: #f5f5f5;
-        }
-        #envStatus {
-            font-weight: bold;
-        }
+        body{font-family:Arial,sans-serif;margin:0;height:100vh;background:#1e1e1e;color:#f5f5f5;overflow:hidden}
+        .widget{position:absolute;text-align:center;background:#2d2d2d;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.5);cursor:grab;user-select:none;min-width:250px}
+        .widget:active{cursor:grabbing}
+        h1{margin-bottom:20px;color:#f5f5f5;font-size:1.5em}
+        button{padding:12px 24px;margin:8px;font-size:16px;cursor:pointer;border:none;border-radius:5px;background:#333;color:#f5f5f5;transition:all 0.3s ease}
+        button:hover{background:#555;transform:translateY(-2px)}
+        .env-info{margin-top:15px;padding:12px;background:#3a3a3a;border-radius:5px;font-size:14px}
+        .settings-btn{position:absolute;top:15px;right:15px;background:none;border:none;color:#f5f5f5;font-size:24px;cursor:pointer;z-index:100;transition:transform 0.3s ease}
+        .settings-btn:hover{transform:rotate(45deg)}
+        .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;justify-content:center;align-items:center}
+        .modal-content{background:#2d2d2d;padding:25px;border-radius:10px;width:300px;max-width:90%;box-shadow:0 5px 15px rgba(0,0,0,0.5)}
+        .close-btn{float:right;cursor:pointer;font-size:22px;line-height:1}
+        .stats{margin-top:20px}
+        .stat-item{padding:10px;margin:10px 0;background:#3a3a3a;border-radius:5px}
     </style>
 </head>
 <body>
+    <button class="settings-btn" id="settingsBtn">⚙️</button>
     <div class="widget" id="widget">
         <h1>Select Environment</h1>
-        <button id="debugBtn" onclick="setEnvironment('debug')">DEBUG</button>
-        <button id="prodBtn" onclick="setEnvironment('prod')">PROD</button>
+        <button id="debugBtn">DEBUG</button>
+        <button id="prodBtn">PROD</button>
         <div class="env-info">
-            <strong>Current Environment:</strong> <span id="envStatus"></span>
+            <strong>Current Environment:</strong> 
+            <span id="envStatus">loading...</span>
+        </div>
+    </div>
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModalBtn">×</span>
+            <h2>Settings</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <strong>Total changes:</strong> 
+                    <span id="changesCount">0</span>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         let currentEnv;
-
-        function fetchCurrentEnvironment() {
-            fetch("/env/current")
-                .then(response => response.text())
-                .then(env => {
-                    currentEnv = env;
-                    updateUI();
-                });
+        const widget=document.getElementById('widget');
+        const settingsBtn=document.getElementById('settingsBtn');
+        const settingsModal=document.getElementById('settingsModal');
+        const closeModalBtn=document.getElementById('closeModalBtn');
+        
+        function loadEnvironment(){
+            fetch('/env/current').then(res=>res.text()).then(env=>{
+                currentEnv=env;
+                updateUI();
+            });
         }
-
-        function updateUI() {
-            const debugBtn = document.getElementById("debugBtn");
-            const prodBtn = document.getElementById("prodBtn");
-            const envStatus = document.getElementById("envStatus");
-
-            debugBtn.classList.remove("active");
-            prodBtn.classList.remove("active");
-
-            if (currentEnv === "debug") {
-                debugBtn.classList.add("active");
-                envStatus.innerText = "debug";
-            } else if (currentEnv === "prod") {
-                prodBtn.classList.add("active");
-                envStatus.innerText = "prod";
-            }
+        
+        function updateUI(){
+            const debugBtn=document.getElementById('debugBtn');
+            const prodBtn=document.getElementById('prodBtn');
+            const envStatus=document.getElementById('envStatus');
+            debugBtn.classList.remove('active');
+            prodBtn.classList.remove('active');
+            currentEnv==='debug'?(debugBtn.classList.add('active'),envStatus.textContent='debug'):(prodBtn.classList.add('active'),envStatus.textContent='prod');
         }
-
-        function setEnvironment(env) {
-            fetch(`/env/${env}`, { method: "POST" })
-                .then(response => response.text())
-                .then(() => {
-                    currentEnv = env;
-                    updateUI();
-                });
+        
+        function setEnvironment(env){
+            fetch(`/env/${env}`,{method:'POST'}).then(()=>{
+                currentEnv=env;
+                updateUI();
+                loadChangesCount();
+            });
         }
-
-        const widget = document.getElementById("widget");
-        let isDragging = false;
-        let offsetX, offsetY;
-
-        function savePosition(x, y) {
-            localStorage.setItem("widgetPosition", JSON.stringify({ x, y }));
+        
+        function loadChangesCount(){
+            fetch('/env/changes').then(res=>res.text()).then(count=>{
+                document.getElementById('changesCount').textContent=count;
+            });
         }
-
-        function loadPosition() {
-            const position = localStorage.getItem("widgetPosition");
-            if (position) {
-                const { x, y } = JSON.parse(position);
-                widget.style.left = `${x}px`;
-                widget.style.top = `${y}px`;
-            }
-        }
-
-        widget.addEventListener("mousedown", (e) => {
-            isDragging = true;
-            offsetX = e.clientX - widget.offsetLeft;
-            offsetY = e.clientY - widget.offsetTop;
+        
+        let isDragging=false;
+        let offsetX,offsetY;
+        
+        widget.addEventListener('mousedown',(e)=>{
+            isDragging=true;
+            offsetX=e.clientX-widget.getBoundingClientRect().left;
+            offsetY=e.clientY-widget.getBoundingClientRect().top;
         });
-
-        document.addEventListener("mousemove", (e) => {
-            if (isDragging) {
-                const x = e.clientX - offsetX;
-                const y = e.clientY - offsetY;
-                widget.style.left = `${x}px`;
-                widget.style.top = `${y}px`;
-                savePosition(x, y);
-            }
+        
+        document.addEventListener('mousemove',(e)=>{
+            if(!isDragging)return;
+            widget.style.left=`${e.clientX-offsetX}px`;
+            widget.style.top=`${e.clientY-offsetY}px`;
         });
-
-        document.addEventListener("mouseup", () => {
-            isDragging = false;
+        
+        document.addEventListener('mouseup',()=>{isDragging=false});
+        
+        settingsBtn.addEventListener('click',()=>{
+            settingsModal.style.display='flex';
+            loadChangesCount();
         });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            fetchCurrentEnvironment();
-            loadPosition();
-        });
+        
+        closeModalBtn.addEventListener('click',()=>{settingsModal.style.display='none'});
+        
+        settingsModal.addEventListener('click',(e)=>{if(e.target===settingsModal)settingsModal.style.display='none'});
+        
+        document.getElementById('debugBtn').addEventListener('click',()=>setEnvironment('debug'));
+        document.getElementById('prodBtn').addEventListener('click',()=>setEnvironment('prod'));
+        
+        document.addEventListener('DOMContentLoaded',()=>{loadEnvironment()});
     </script>
 </body>
 </html>

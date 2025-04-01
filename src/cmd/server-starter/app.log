@@ -1,3 +1,36 @@
-{"time":"2025-03-10T01:04:02.5988221+03:00","level":"INFO","msg":"Successfully connected to database"}
-{"time":"2025-03-10T01:04:02.7178169+03:00","level":"INFO","msg":"Successfully connected to database"}
-{"time":"2025-03-10T01:04:02.7280312+03:00","level":"INFO","msg":"env = ","!BADKEY":"prod"}
+{"time":"2025-04-01T03:10:29.2906366+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:29.3299743+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:29.3302072+03:00","level":"INFO","msg":"Server starting on","env":"prod"}
+{"time":"2025-04-01T03:10:29.3302072+03:00","level":"INFO","msg":"Starting server on :8080"}
+{"time":"2025-04-01T03:10:35.009438+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:36.07073+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:37.5026016+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:40.3714977+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:40.3736765+03:00","level":"INFO","msg":"env = prod"}
+{"time":"2025-04-01T03:10:40.4190411+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:41.6506255+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:43.5860604+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:43.5874435+03:00","level":"INFO","msg":"env = prod"}
+{"time":"2025-04-01T03:10:43.6333783+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:43.7648817+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:43.7662316+03:00","level":"INFO","msg":"env = prod"}
+{"time":"2025-04-01T03:10:43.8104072+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:44.9635463+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:47.0935345+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:47.0951923+03:00","level":"INFO","msg":"env = debug"}
+{"time":"2025-04-01T03:10:47.2600142+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:47.769945+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:47.7722559+03:00","level":"INFO","msg":"env = prod"}
+{"time":"2025-04-01T03:10:47.8221475+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:48.1982763+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:48.2012417+03:00","level":"INFO","msg":"env = debug"}
+{"time":"2025-04-01T03:10:48.2461317+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:48.6302839+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:48.6322855+03:00","level":"INFO","msg":"env = prod"}
+{"time":"2025-04-01T03:10:48.6798839+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:49.2777543+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:49.278146+03:00","level":"INFO","msg":"env = debug"}
+{"time":"2025-04-01T03:10:49.3258105+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:49.6373009+03:00","level":"INFO","msg":"Successfully connected to database"}
+{"time":"2025-04-01T03:10:49.6391544+03:00","level":"INFO","msg":"env = prod"}
+{"time":"2025-04-01T03:10:49.7990757+03:00","level":"INFO","msg":"Successfully connected to database"}

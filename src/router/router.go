@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	envupdate "main/src/EnvUpdate"
+	howmanychangeenv "main/src/HowManyChangeEnv"
 	"main/src/envchecker"
 	"main/src/logger"
 	"net/http"
@@ -26,7 +27,10 @@ func Router() *chi.Mux {
 		}
 		w.Write([]byte(env))
 	})
-
+	server.Get("/env/changes", func(w http.ResponseWriter, r *http.Request) {
+		changes := howmanychangeenv.Change()
+		fmt.Fprintf(w, "%d", changes)
+	})
 	server.Post("/env/prod", func(w http.ResponseWriter, r *http.Request) {
 		err := envupdate.EnvUpdateProd()
 		if err != nil {
