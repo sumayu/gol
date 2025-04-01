@@ -13,9 +13,16 @@ func EnvUpdateProd() error {
 	}
 
 	_, err = db.Exec(`
-		TRUNCATE TABLE envchecker;
-		INSERT INTO envchecker (env) VALUES ('prod');
-	`)
+    WITH updated AS (
+        UPDATE envchecker 
+        SET env = 'prod',
+            env_how_many_change = COALESCE(env_how_many_change, 0) + 1
+        RETURNING *
+    )
+    INSERT INTO envchecker (env, env_how_many_change)
+    SELECT 'prod', 1
+    WHERE NOT EXISTS (SELECT 1 FROM updated)
+`)
 	if err != nil {
 		logger.Logger.Info("error updating env to prod:", err)
 		return err
@@ -33,9 +40,16 @@ func EnvUpdateDebug() error {
 	}
 
 	_, err = db.Exec(`
-		TRUNCATE TABLE envchecker;
-		INSERT INTO envchecker (env) VALUES ('debug');
-	`)
+    WITH updated AS (
+        UPDATE envchecker 
+        SET env = 'debug',
+            env_how_many_change = COALESCE(env_how_many_change, 0) + 1
+        RETURNING *
+    )
+    INSERT INTO envchecker (env, env_how_many_change)
+    SELECT 'debug', 1
+    WHERE NOT EXISTS (SELECT 1 FROM updated)
+`)
 	if err != nil {
 		logger.Logger.Info("error updating env to debug:", err)
 		return err

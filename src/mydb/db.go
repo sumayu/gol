@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 
+	"main/src/logger" // Используйте ваш логгер
+
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"main/src/logger" // Используйте ваш логгер
 )
 
-// setenv загружает переменные окружения и возвращает строку подключения.
 func setenv() (string, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
