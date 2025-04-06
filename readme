@@ -20,5 +20,3 @@ PS C:\gol> docker exec -it (НАЗВАНИЕ СЮДА к примеру 35517d79
 
 PS C:\gol> docker exec (тут твое название) wget -qO- http://localhost:8080/env/debug
 app local сюда сохраняются логи
-
-
