@@ -11,6 +11,7 @@
         h1{margin-bottom:20px;color:#f5f5f5;font-size:1.5em}
         button{padding:12px 24px;margin:8px;font-size:16px;cursor:pointer;border:none;border-radius:5px;background:#333;color:#f5f5f5;transition:all 0.3s ease}
         button:hover{background:#555;transform:translateY(-2px)}
+        button.active{background:#4CAF50;color:white}
         .env-info{margin-top:15px;padding:12px;background:#3a3a3a;border-radius:5px;font-size:14px}
         .settings-btn{position:absolute;top:15px;right:15px;background:none;border:none;color:#f5f5f5;font-size:24px;cursor:pointer;z-index:100;transition:transform 0.3s ease}
         .settings-btn:hover{transform:rotate(45deg)}
@@ -19,6 +20,8 @@
         .close-btn{float:right;cursor:pointer;font-size:22px;line-height:1}
         .stats{margin-top:20px}
         .stat-item{padding:10px;margin:10px 0;background:#3a3a3a;border-radius:5px}
+        .log-container{max-height:200px;overflow-y:auto;margin-top:15px;background:#252525;padding:10px;border-radius:5px}
+        .log-entry{font-family:monospace;font-size:12px;margin:5px 0;color:#ddd}
     </style>
 </head>
 <body>
@@ -31,6 +34,7 @@
             <strong>Current Environment:</strong> 
             <span id="envStatus">loading...</span>
         </div>
+        <div class="log-container" id="logContainer"></div>
     </div>
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-content">
@@ -47,71 +51,150 @@
 
     <script>
         let currentEnv;
-        const widget=document.getElementById('widget');
-        const settingsBtn=document.getElementById('settingsBtn');
-        const settingsModal=document.getElementById('settingsModal');
-        const closeModalBtn=document.getElementById('closeModalBtn');
+        let socket;
+        const widget = document.getElementById('widget');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const logContainer = document.getElementById('logContainer');
         
-        function loadEnvironment(){
-            fetch('/env/current').then(res=>res.text()).then(env=>{
-                currentEnv=env;
-                updateUI();
-            });
+        // Initialize WebSocket connection
+        function initWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsUrl = protocol + window.location.host + '/logger/log';
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = () => {
+                console.log('WebSocket connected');
+                addLogEntry('Connected to log stream');
+            };
+            
+            socket.onmessage = (event) => {
+                addLogEntry(event.data);
+            };
+            
+            socket.onclose = () => {
+                addLogEntry('Disconnected from log stream');
+                // Reconnect after 5 seconds
+                setTimeout(initWebSocket, 5000);
+            };
+            
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                addLogEntry('WebSocket error occurred');
+            };
         }
         
-        function updateUI(){
-            const debugBtn=document.getElementById('debugBtn');
-            const prodBtn=document.getElementById('prodBtn');
-            const envStatus=document.getElementById('envStatus');
+        function addLogEntry(message) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `[${timeString}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function loadEnvironment() {
+            fetch('/env/current')
+                .then(res => res.text())
+                .then(env => {
+                    currentEnv = env;
+                    updateUI();
+                })
+                .catch(err => {
+                    console.error('Failed to load environment:', err);
+                    addLogEntry('Error loading current environment');
+                });
+        }
+        
+        function updateUI() {
+            const debugBtn = document.getElementById('debugBtn');
+            const prodBtn = document.getElementById('prodBtn');
+            const envStatus = document.getElementById('envStatus');
+            
             debugBtn.classList.remove('active');
             prodBtn.classList.remove('active');
-            currentEnv==='debug'?(debugBtn.classList.add('active'),envStatus.textContent='debug'):(prodBtn.classList.add('active'),envStatus.textContent='prod');
+            
+            if (currentEnv === 'debug') {
+                debugBtn.classList.add('active');
+                envStatus.textContent = 'DEBUG';
+            } else {
+                prodBtn.classList.add('active');
+                envStatus.textContent = 'PROD';
+            }
         }
         
-        function setEnvironment(env){
-            fetch(`/env/${env}`,{method:'POST'}).then(()=>{
-                currentEnv=env;
-                updateUI();
-                loadChangesCount();
-            });
+        function setEnvironment(env) {
+            fetch(`/env/${env}`, { method: 'POST' })
+                .then(() => {
+                    currentEnv = env;
+                    updateUI();
+                    loadChangesCount();
+                    addLogEntry(`Environment changed to ${env}`);
+                })
+                .catch(err => {
+                    console.error('Failed to set environment:', err);
+                    addLogEntry(`Error changing to ${env} environment`);
+                });
         }
         
-        function loadChangesCount(){
-            fetch('/env/changes').then(res=>res.text()).then(count=>{
-                document.getElementById('changesCount').textContent=count;
-            });
+        function loadChangesCount() {
+            fetch('/env/changes')
+                .then(res => res.text())
+                .then(count => {
+                    document.getElementById('changesCount').textContent = count;
+                })
+                .catch(err => {
+                    console.error('Failed to load changes count:', err);
+                });
         }
         
-        let isDragging=false;
-        let offsetX,offsetY;
+        // Draggable widget functionality
+        let isDragging = false;
+        let offsetX, offsetY;
         
-        widget.addEventListener('mousedown',(e)=>{
-            isDragging=true;
-            offsetX=e.clientX-widget.getBoundingClientRect().left;
-            offsetY=e.clientY-widget.getBoundingClientRect().top;
+        widget.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            offsetX = e.clientX - widget.getBoundingClientRect().left;
+            offsetY = e.clientY - widget.getBoundingClientRect().top;
         });
         
-        document.addEventListener('mousemove',(e)=>{
-            if(!isDragging)return;
-            widget.style.left=`${e.clientX-offsetX}px`;
-            widget.style.top=`${e.clientY-offsetY}px`;
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            widget.style.left = `${e.clientX - offsetX}px`;
+            widget.style.top = `${e.clientY - offsetY}px`;
         });
         
-        document.addEventListener('mouseup',()=>{isDragging=false});
+        document.addEventListener('mouseup', () => { isDragging = false });
         
-        settingsBtn.addEventListener('click',()=>{
-            settingsModal.style.display='flex';
+        // Modal controls
+        settingsBtn.addEventListener('click', () => {
+            settingsModal.style.display = 'flex';
             loadChangesCount();
         });
         
-        closeModalBtn.addEventListener('click',()=>{settingsModal.style.display='none'});
+        closeModalBtn.addEventListener('click', () => { settingsModal.style.display = 'none' });
         
-        settingsModal.addEventListener('click',(e)=>{if(e.target===settingsModal)settingsModal.style.display='none'});
+        settingsModal.addEventListener('click', (e) => {
+            if (e.target === settingsModal) settingsModal.style.display = 'none';
+        });
         
-        document.getElementById('debugBtn').addEventListener('click',()=>setEnvironment('debug'));
-        document.getElementById('prodBtn').addEventListener('click',()=>setEnvironment('prod'));
+        // Button event listeners
+        document.getElementById('debugBtn').addEventListener('click', () => setEnvironment('debug'));
+        document.getElementById('prodBtn').addEventListener('click', () => setEnvironment('prod'));
         
-        document.addEventListener('DOMContentLoaded',()=>{loadEnvironment()});
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Position widget in center
+            widget.style.left = '50%';
+            widget.style.top = '50%';
+            widget.style.transform = 'translate(-50%, -50%)';
+            
+            loadEnvironment();
+            initWebSocket();
+        });
     </script>
 </body>
 </html>
