@@ -1,7 +1,12 @@
 env: "local"
 
-bd:
-  bdPath: "myDB/db"
+db:
+  bdpath: "myDB/db"
+  
+logging:
+  app_log: "src/cmd/server-starter/app.log"  
+  level: "debug"                            
 
 server:
-    adr: "localhost:8080"
+  adr: "localhost:8080"
+  static_dir: "static"                      

@@ -33,7 +33,7 @@ func InitLogger(env string) {
 
 func monitorLogFileSize() {
 	for {
-		time.Sleep(60 * time.Second)
+		time.Sleep(10 * time.Minute)
 
 		fileSize, errSize := os.Stat(filname)
 		if errSize != nil {
@@ -41,9 +41,9 @@ func monitorLogFileSize() {
 			continue
 		}
 
-		// ВАЖНО INFOOOOOO ЕСЛИ НУЖНО ПОМЕНЯТЬ МАКСИМАЛЬНЫЙ РАЗМЕР ЛОГОВ ТО ТУТ МЕНЯЕШЬ 1000 БАЙТ НА 100000 ИЛИ СКОЛЬКО НУЖНО ИЛИ ПРОСТО МОЖНО 
+		// ВАЖНО INFOOOOOO ЕСЛИ НУЖНО ПОМЕНЯТЬ МАКСИМАЛЬНЫЙ РАЗМЕР ЛОГОВ ТО ТУТ МЕНЯЕШЬ 1000000 БАЙТ НА 100000 ИЛИ СКОЛЬКО НУЖНО ИЛИ ПРОСТО МОЖНО 
 		// удалить эту часть кода и тогда у логгов не будет лимита 
-		if fileSize.Size() >= 1000 {
+		if fileSize.Size() >= 1000000 {
 			err := os.Truncate(filname, 0)
 			if err != nil {
 				slog.Error("Failed to truncate log file:", err)
