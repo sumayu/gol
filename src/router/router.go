@@ -42,11 +42,8 @@ func Router() *chi.Mux {
 		}
 		defer conn.Close()
 
-		// Канал для управления горутиной
 		done := make(chan struct{})
 		defer close(done)
-
-		// Запускаем отправку логов
 		go func() {
 			websockethelper.WebsocketHelper(logPath, func(logLine string) {
 				select {
@@ -61,8 +58,6 @@ func Router() *chi.Mux {
 				}
 			}, done)
 		}()
-
-		// Обрабатываем входящие сообщения (для поддержания соединения)
 		for {
 			_, _, err := conn.ReadMessage()
 			if err != nil {
@@ -73,8 +68,6 @@ func Router() *chi.Mux {
 			}
 		}
 	})
-
-	// Остальные обработчики остаются без изменений
 	server.Get("/env/current", func(w http.ResponseWriter, r *http.Request) {
 		env := envchecker.Envchecker()
 		if env == "" {
