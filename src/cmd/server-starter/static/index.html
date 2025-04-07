@@ -76,7 +76,6 @@
             
             socket.onclose = () => {
                 addLogEntry('Disconnected from log stream');
-                // Reconnect after 5 seconds
                 setTimeout(initWebSocket, 5000);
             };
             
@@ -150,8 +149,6 @@
                     console.error('Failed to load changes count:', err);
                 });
         }
-        
-        // Draggable widget functionality
         let isDragging = false;
         let offsetX, offsetY;
         
@@ -168,8 +165,6 @@
         });
         
         document.addEventListener('mouseup', () => { isDragging = false });
-        
-        // Modal controls
         settingsBtn.addEventListener('click', () => {
             settingsModal.style.display = 'flex';
             loadChangesCount();
@@ -180,14 +175,10 @@
         settingsModal.addEventListener('click', (e) => {
             if (e.target === settingsModal) settingsModal.style.display = 'none';
         });
-        
-        // Button event listeners
         document.getElementById('debugBtn').addEventListener('click', () => setEnvironment('debug'));
         document.getElementById('prodBtn').addEventListener('click', () => setEnvironment('prod'));
         
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            // Position widget in center
             widget.style.left = '50%';
             widget.style.top = '50%';
             widget.style.transform = 'translate(-50%, -50%)';

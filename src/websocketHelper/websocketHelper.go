@@ -16,7 +16,6 @@ func WebsocketHelper(logPath string, callback func(string), done <-chan struct{}
 	}
 	defer file.Close()
 
-	// Начинаем чтение с конца файла
 	if _, err := file.Seek(0, io.SeekEnd); err != nil {
 		logger.Logger.Error("Failed to seek log file:", err)
 		return
