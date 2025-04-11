@@ -60,6 +60,9 @@
         
         // Initialize WebSocket connection
         function initWebSocket() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();  
+    }
             const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
             const wsUrl = protocol + window.location.host + '/logger/log';
             
@@ -71,12 +74,19 @@
             };
             
             socket.onmessage = (event) => {
-                addLogEntry(event.data);
-            };
+    try {
+        const data = JSON.parse(event.data);
+        if (data.msg?.includes('env =') || data.message?.includes('env =')) {
+            addLogEntry(event.data);
+        }
+    } catch {
+        addLogEntry(event.data);
+    }
+};
             
             socket.onclose = () => {
                 addLogEntry('Disconnected from log stream');
-                setTimeout(initWebSocket, 5000);
+                //setTimeout(initWebSocket, 5000);
             };
             
             socket.onerror = (error) => {
@@ -84,17 +94,20 @@
                 addLogEntry('WebSocket error occurred');
             };
         }
-        
         function addLogEntry(message) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            logEntry.textContent = `[${timeString}] ${message}`;
-            logContainer.appendChild(logEntry);
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-        
+    let logText = message;
+    try {
+        const logData = JSON.parse(message);
+        const time = logData.time ? new Date(logData.time).toLocaleTimeString() : '';
+        logText = `${time} [${logData.level}] ${logData.msg || logData.message || JSON.stringify(logData)}`;
+    } catch {}
+    
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry';
+    logEntry.textContent = logText;
+    logContainer.appendChild(logEntry);
+    logContainer.scrollTop = logContainer.scrollHeight;
+} 
         function loadEnvironment() {
             fetch('/env/current')
                 .then(res => res.text())

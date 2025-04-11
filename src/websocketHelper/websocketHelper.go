@@ -1,78 +1,63 @@
-package websockethelper
+	package websockethelper
 
-import (
-	"bufio"
-	"io"
-	"main/src/logger"
-	"os"
-	"time"
-)
+	import (
+		"bufio"
+		"context"
+		"fmt"
+		"io"
+		"os"
+		"time"
+	)
+	func WebsocketHelper(ctx context.Context, logPath string, callback func(string)) error {
+		file, err := os.Open(logPath)
+		if err != nil {
+			return fmt.Errorf("failed to open log file: %w", err)
+		}
+		defer file.Close()
 
-func WebsocketHelper(logPath string, callback func(string), done <-chan struct{}) {
-	file, err := os.Open(logPath)
-	if err != nil {
-		logger.Logger.Error("Failed to open log file:", err)
-		return
-	}
-	defer file.Close()
+		if _, err := file.Seek(0, io.SeekStart); err != nil {//io.SeekEnd); err != nil {
+			return fmt.Errorf("seek error: %w", err)
+		}
 
-	if _, err := file.Seek(0, io.SeekEnd); err != nil {
-		logger.Logger.Error("Failed to seek log file:", err)
-		return
-	}
+		scanner := bufio.NewScanner(file)
+		scanner.Buffer(make([]byte, 64*1024), 1*1024*1024)
 
-	scanner := bufio.NewScanner(file)
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 1*1024*1024) // 1MB max line length
+		ticker := time.NewTicker(500 * time.Millisecond)
+		defer ticker.Stop()
 
-	ticker := time.NewTicker(500 * time.Millisecond)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-done:
-			return
-		case <-ticker.C:
-			for scanner.Scan() {
-				select {
-				case <-done:
-					return
-				default:
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-ticker.C:
+				for scanner.Scan() {
 					callback(scanner.Text())
 				}
-			}
 
-			if err := scanner.Err(); err != nil {
-				logger.Logger.Error("Scanner error:", err)
-				return
-			}
-
-			// Проверяем не был ли файл пересоздан
-			if rotated, err := isFileRotated(logPath, file); err != nil {
-				logger.Logger.Error("Rotation check failed:", err)
-				return
-			} else if rotated {
-				logger.Logger.Info("Log file rotated, reopening...")
-				file.Close()
-				file, err = os.Open(logPath)
-				if err != nil {
-					logger.Logger.Error("Failed to reopen log file:", err)
-					return
+				if err := scanner.Err(); err != nil {
+					return fmt.Errorf("scanner error: %w", err)
 				}
-				scanner = bufio.NewScanner(file)
+
+				if rotated, err := isFileRotated(logPath, file); err != nil {
+					return fmt.Errorf("rotation check failed: %w", err)
+				} else if rotated {
+					file.Close()
+					if file, err = os.Open(logPath); err != nil {
+						return fmt.Errorf("reopen failed: %w", err)
+					}
+					scanner = bufio.NewScanner(file)
+				}
 			}
 		}
 	}
-}
-
-func isFileRotated(path string, currentFile *os.File) (bool, error) {
-	currentPos, err := currentFile.Seek(0, io.SeekCurrent)
-	if err != nil {
-		return false, err
+	func isFileRotated(path string, currentFile *os.File) (bool, error) {
+		currentPos, err := currentFile.Seek(0, io.SeekCurrent)
+		if err != nil {
+			return false, err
+		}
+		info, err := os.Stat(path)
+		if err != nil {
+			return false, err
+		}
+		return info.Size() < currentPos, nil
 	}
-	info, err := os.Stat(path)
-	if err != nil {
-		return false, err
-	}
-	return info.Size() < currentPos, nil
-}
