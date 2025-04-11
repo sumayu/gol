@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"fmt"
 	envupdate "main/src/EnvUpdate"
 	howmanychangeenv "main/src/HowManyChangeEnv"
@@ -41,30 +42,37 @@ func Router() *chi.Mux {
 			return
 		}
 		defer conn.Close()
-
-		done := make(chan struct{})
-		defer close(done)
+	
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
+	
 		go func() {
-			websockethelper.WebsocketHelper(logPath, func(logLine string) {
+			err := websockethelper.WebsocketHelper(ctx, logPath, func(logLine string) {
 				select {
-				case <-done:
+				case <-ctx.Done():  // Проверяем отмену контекста
 					return
 				default:
-					err := conn.WriteMessage(websocket.TextMessage, []byte(logLine))
-					if err != nil {
+					if err := conn.WriteMessage(websocket.TextMessage, []byte(logLine)); err != nil {
 						logger.Logger.Warn("WebSocket write error:", err)
+						cancel()  // Отменяем контекст при ошибке
 						return
 					}
 				}
-			}, done)
+			})
+			
+			if err != nil {
+				logger.Logger.Error("WebsocketHelper failed:", err)
+			}
 		}()
+	
+		// Читаем сообщения (для детектирования разрыва соединения)
 		for {
 			_, _, err := conn.ReadMessage()
 			if err != nil {
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-					logger.Logger.Debug("WebSocket closed unexpectedly:", err)
+				if !websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+					logger.Logger.Debug("WebSocket closed:", err)
 				}
-				break
+				return
 			}
 		}
 	})

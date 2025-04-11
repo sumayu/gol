@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"log/slog"
+	"log/slog"	
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -52,7 +52,6 @@ func monitorLogFileSize() {
 		// Тут логи из app.log удаляются если достигают размера 1000 байт (при кодировке utf 8 в среднем 1 символ ==  1 байт (8бит))
 	}
 }
-
 func PanicRecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
