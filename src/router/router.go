@@ -26,7 +26,7 @@ var upgrader = websocket.Upgrader{
 
 func Router() *chi.Mux {
 	server := chi.NewRouter()
-	
+	server.Use(RecoveryMiddleware)
 	basePath, _ := os.Getwd()
 	logPath := filepath.Join(basePath, "src/cmd/server-starter/app.log")
 
@@ -65,7 +65,6 @@ func Router() *chi.Mux {
 			}
 		}()
 	
-		// Читаем сообщения (для детектирования разрыва соединения)
 		for {
 			_, _, err := conn.ReadMessage()
 			if err != nil {
