@@ -6,6 +6,6 @@ import (
 )
 
 func Test(t *testing.T) {
-assert.Equal(t, true, m(1), "хуйня какая-то")
+assert.Equal(t, true, m(1), "oi")
 
 }
