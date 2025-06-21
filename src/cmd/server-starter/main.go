@@ -12,8 +12,8 @@ import (
 func main() {
 	
 	logger.InitLogger("prod")
-	pathToYaml := "../../../configYML/config.yaml"
-	// pathToYaml := "/app/configYML/config.yaml"
+	//pathToYaml := "../../../configYML/config.yaml"
+	pathToYaml := "/app/configYML/config.yaml"
 	cfg, err := configs.LoadConfigs(pathToYaml)
 	if err != nil {
 		logger.Logger.Error("Failed to load config", "error", err)

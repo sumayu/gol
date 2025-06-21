@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-var filname string = "app.log"
+//var filname string = "app.log"
+var filname string = "/app/logs/app.log"
 var Logger *slog.Logger
 
 func InitLogger(env string) {

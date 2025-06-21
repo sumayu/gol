@@ -4,13 +4,11 @@ import (
 	"context"
 	"fmt"
 	envupdate "main/src/EnvUpdate"
-	howmanychangeenv "main/src/HowManyChangeEnv"
 	"main/src/envchecker"
+	"main/src/howmanychangeenv"
 	"main/src/logger"
 	websockethelper "main/src/websocketHelper"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/go-chi/chi"
 	"github.com/gorilla/websocket"
@@ -27,9 +25,10 @@ var upgrader = websocket.Upgrader{
 func Router() *chi.Mux {
 	server := chi.NewRouter()
 	server.Use(RecoveryMiddleware)
-	basePath, _ := os.Getwd()
-	logPath := filepath.Join(basePath, "src/cmd/server-starter/app.log")
-
+	//basePath, _ := os.Getwd() ПРОБЛЕМНЫЙ УЧАСТОК Т.К GEetwd выводит 
+	 // текущую папку если решу перенести нужно будет поменять все тут
+	//logPath := filepath.Join(basePath, "src/cmd/server-starter/app.log") 
+logPath :=  "app/logs/app.log" // тут хранятся логи в докере
 	server.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		logger.Logger.Debug("connect to api TRUE")
 		http.Redirect(w, r, "/static/index.html", http.StatusMovedPermanently)

@@ -1,7 +1,6 @@
 FROM golang:1.21-alpine AS builder 
 WORKDIR /app
 COPY go.mod go.sum ./
-
 RUN go mod download 
 COPY ./src /app/src
 COPY ./configYML /app/configYML
@@ -11,4 +10,5 @@ FROM alpine:latest
 COPY --from=builder /app/server .
 COPY --from=builder /app/.env .
 COPY --from=builder /app/configYML app/configYML
+COPY --from=builder /app/src/cmd/server-starter/app.log /app/logs/  
 CMD [ "./server" ]
