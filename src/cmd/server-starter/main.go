@@ -12,6 +12,7 @@ import (
 func main() {
 	
 	logger.InitLogger("prod")
+	
 	//pathToYaml := "../../../configYML/config.yaml"
 	pathToYaml := "/app/configYML/config.yaml"
 	cfg, err := configs.LoadConfigs(pathToYaml)
