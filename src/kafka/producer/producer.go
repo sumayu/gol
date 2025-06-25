@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	// to-do ПРовести пути для докера и для обычного запуска 
-		logger.InitLogger("prod")
+
 	config:= &kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092", 
 	}
