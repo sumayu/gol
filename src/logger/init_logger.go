@@ -7,13 +7,13 @@ import (
 )
 
 func Init() {
-InitLogger("prod")
+InitLogger("debug")
 }
 func getConfigPath() (string) {
-	if IsDocker()  == true {
-return	"/app/configYML/config.yaml"
-	}
+	if IsDocker()  == false {
 		return  "../../../configYML/config.yaml"
+	}
+return	"/app/configYML/config.yaml"
 	
 }
 func LoadConfig() (*configs.Сonfig, error) {

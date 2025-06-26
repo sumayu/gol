@@ -6,7 +6,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 func main()  {
-	logger.InitLogger("prod")
+logger.Init()
 	config := &kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092",
 		"group.id": "mygroup",

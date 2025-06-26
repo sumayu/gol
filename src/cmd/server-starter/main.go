@@ -1,7 +1,6 @@
 package main
 
 import (
-	"main/src/backend/backendCFG"
 	"main/src/envchecker"
 	"main/src/logger"
 	"main/src/mydb"
@@ -10,17 +9,7 @@ import (
 )
 
 func main() {
-	
-	logger.InitLogger("prod")
-	
-	//pathToYaml := "../../../configYML/config.yaml"
-	pathToYaml := "/app/configYML/config.yaml"
-	cfg, err := configs.LoadConfigs(pathToYaml)
-	if err != nil {
-		logger.Logger.Error("Failed to load config", "error", err)
-		return
-	}
-	logger.Logger.Debug("Config loaded successfully", "config", cfg)
+	logger.Init()
 	db, err := mydb.Database()
 	if err != nil {
 		logger.Logger.Error("Failed to initialize database", "error", err)

@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+ logger.Init()
 
 	config:= &kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092", 
@@ -28,7 +29,7 @@ err := producer.Produce(&kafka.Message{ TopicPartition: kafka.TopicPartition{
 if err != nil {
 	logger.Logger.Error("Producer cant push message to kafka PRODUCER.ERROR", err)
 } else { 
-	fmt.Println("message push", message)
+	logger.Logger.Debug("message push", message)
 }
 producer.Flush(15*1000)
 

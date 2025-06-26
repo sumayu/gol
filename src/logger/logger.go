@@ -1,69 +1,117 @@
 package logger
 
 import (
-	"log/slog"	
+	"io"
+	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"runtime"
 	"runtime/debug"
 	"time"
 )
+var pathToApp string
+var filename string
+func init() {
 
-//var filname string = "app.log"
-var filname string = "/app/logs/app.log"
+	if isDocker() {
+		filename, _= getProjectRoot()
+	} else {
+	 filename  = "main/src/cmd/server-starter/app.log"
+	}
+}
+
 var Logger *slog.Logger
 
 func InitLogger(env string) {
+	var handler slog.Handler
+
 	switch env {
-	case "debug":
-		Logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	case "local":
-		Logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	case "prod":
-		logFile, err := os.OpenFile(filname, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	case "debug", "local":
+		logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			slog.Error("Failed to open log file:", err)
 			return
 		}
-		Logger = slog.New(slog.NewJSONHandler(logFile, &slog.HandlerOptions{Level: slog.LevelInfo}))
+
+		multiWriter := io.MultiWriter(os.Stdout, logFile)
+		handler = slog.NewTextHandler(multiWriter, &slog.HandlerOptions{
+			Level: slog.LevelDebug, // Уровень Debug
+		})
+
+	case "prod":
+		logFile, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			slog.Error("Failed to open log file:", err)
+			return
+		}
+
+		multiWriter := io.MultiWriter(os.Stdout, logFile)
+		handler = slog.NewJSONHandler(multiWriter, &slog.HandlerOptions{
+			Level: slog.LevelInfo, // Уровень Info (меньше деталей, чем Debug)
+		})
+
 	default:
-		Logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		handler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})
 	}
 
+	Logger = slog.New(handler)
 	go monitorLogFileSize()
 }
 
+// isDocker проверяет, работает ли приложение в Docker.
+func isDocker() bool {
+	_, err := os.Stat("/.dockerenv")
+	return err == nil
+}
+
+// monitorLogFileSize следит за размером лог-файла и очищает его при превышении.
 func monitorLogFileSize() {
 	for {
 		time.Sleep(10 * time.Minute)
 
-		fileSize, errSize := os.Stat(filname)
-		if errSize != nil {
-			slog.Error("Failed to open size file:", errSize)
+		fileInfo, err := os.Stat(filename)
+		if err != nil {
+			slog.Error("Failed to check log file size:", err)
 			continue
 		}
-
-		// ВАЖНО INFOOOOOO ЕСЛИ НУЖНО ПОМЕНЯТЬ МАКСИМАЛЬНЫЙ РАЗМЕР ЛОГОВ ТО ТУТ МЕНЯЕШЬ 1000000 БАЙТ НА 100000 ИЛИ СКОЛЬКО НУЖНО ИЛИ ПРОСТО МОЖНО 
-		// удалить эту часть кода и тогда у логгов не будет лимита 
-		if fileSize.Size() >= 1000000 {
-			err := os.Truncate(filname, 0)
-			if err != nil {
+		if fileInfo.Size() >= 1_000_000 {
+			if err := os.Truncate(filename, 0); err != nil {
 				slog.Error("Failed to truncate log file:", err)
 			}
 		}
-		// Тут логи из app.log удаляются если достигают размера 1000 байт (при кодировке utf 8 в среднем 1 символ ==  1 байт (8бит))
 	}
 }
 func PanicRecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				Logger.Error("Panic recovered",
-					"error", err,
-					"stack", string(debug.Stack()),
-				)
+				if Logger != nil {
+					Logger.Error("Panic recovered",
+						"error", err,
+						"stack", string(debug.Stack()),
+					)
+				}
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}
 		}()
 		next.ServeHTTP(w, r)
 	})
+}
+
+
+func getProjectRoot() (string, error) {
+	_, filename, _, _ := runtime.Caller(0) 
+	return filepath.Abs(filepath.Join(filepath.Dir(filename), "../../..")) 
+}
+
+func init() {
+	root, err := getProjectRoot()
+	if err != nil {
+		panic("Failed to get project root: " + err.Error())
+	}
+
+	filename = filepath.Join(root, "gol", "src", "cmd", "server-starter", "app.log")
 }
