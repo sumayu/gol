@@ -36,7 +36,11 @@ for {
     logger.Logger.Warn("Получено nil-сообщение")
     continue
 }
-	logger.Logger.Debug("Получено сообщение", string(msg.Value)) //TO-DO решить проблему с выводом данных в msg.Value-> почему оно не сохраняет сообщения
+if len(msg.Value) == 0 {
+    logger.Logger.Warn("Получено пустое сообщение (длина 0)")
+    continue
+}
+logger.Logger.Debug("Получено сообщение", "message_value", (msg.Value))	
 }
 
 }

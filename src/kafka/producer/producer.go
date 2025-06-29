@@ -24,8 +24,7 @@ func main() {
 err := producer.Produce(&kafka.Message{ TopicPartition: kafka.TopicPartition{
 	Topic: &topic, 
 	Partition: kafka.PartitionAny,
-
-}}, nil)
+}, Value: []byte(message),}, nil)
 if err != nil {
 	logger.Logger.Error("Producer cant push message to kafka PRODUCER.ERROR", err)
 } else { 
